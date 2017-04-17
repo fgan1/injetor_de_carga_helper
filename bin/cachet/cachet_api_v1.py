@@ -7,6 +7,8 @@ import logging
 CONST_SUFIX_INTENT_URL="/api/v1/incidents"
 CONST_SUFIX_COMPONENTS_URL="/api/v1/components"
 CONST_SUFIX_GROUP_COMPONENTS_URL="/api/v1/components/groups"
+CONST_SUFIX_METRIC_URL="/api/v1/metrics"
+CONST_SUFIX_METRIC_POINT_URL="/points"
 CONST_HEADER_APP_KEY="X-Cachet-Token"
 
 CONST_DELETE_METHOD="DELETE"
@@ -15,12 +17,20 @@ CONST_POST_METHOD="POST"
 CONST_NAME_ATTR="name"
 CONST_MESSAGE_ATTR="message"
 CONST_STATUS_ATTR="status"
-CONST_VISIBLE_ATTR="status"
+CONST_VISIBLE_ATTR="visible"
+CONST_COMPONENT_ID_ATTR="component_id"
+CONST_COMPONENT_STATUS_ATTR="component_status"
+CONST_SUFFIX_ATTR="suffix"
+CONST_DESCRIPTION_ATTR="description"
+CONST_DEFAULT_VALUE_ATTR="default_value"
+CONST_VALUE_ATTR="value"
+CONST_TIMESTAMP_ATTR="timestamp"
 
 logger = logging.getLogger(__name__)
 
 # Cachet
 # Api v1
+# Ref : https://docs.cachethq.io/reference#post-metric-points
 class CachetApiV1:
 
 	def __init__(self):
@@ -156,6 +166,7 @@ class CachetApiV1:
 	def delete_intent(endpoint):
 		pass
 
+	# TODO refactor
 	@staticmethod
 	def create_intent(endpoint, name, message, status, visible, componentId, componentStatus, token):
 		logger.debug("Creating intent in %s." % (endpoint))
@@ -165,10 +176,8 @@ class CachetApiV1:
 			
 			datas = {CONST_NAME_ATTR : name, CONST_MESSAGE_ATTR: message, 
 				CONST_STATUS_ATTR: status, CONST_VISIBLE_ATTR: visible}
-
 			if componentId is not None and componentStatus is not None:
 				datas.update({CONST_COMPONENT_ID_ATTR: componentId, CONST_COMPONENT_STATUS_ATTR: componentStatus})	
-
 			data = urllib.urlencode(datas)
 
 			headers = {CONST_HEADER_APP_KEY: token}
@@ -184,7 +193,13 @@ class CachetApiV1:
 	# TODO implement
 	@staticmethod
 	def get_metrics(endpoint):
-		pass
+		logger.debug("Getting metrics in %s." % (endpoint))
+		try:
+			url = "%s%s" % (endpoint, CONST_SUFIX_METRIC_URL)
+			return urllib2.urlopen(url).read()
+		except Exception as e:
+		    logging.exception("Error while get metrics.")
+		    return None			
 
 	# TODO implement
 	@staticmethod
@@ -196,22 +211,53 @@ class CachetApiV1:
 	def delete_metric(endpoint, token):
 		pass
 
-	# TODO implement
+	# TODO refactor
+	# name, suffix, descripion : string
+	# default_value : int
 	@staticmethod
-	def create_metric(endpoint, token):
+	def create_metric(endpoint, name, suffix, description, default_value, token):
 		logger.debug("Creating metric in %s." % (endpoint))
 		try:
-			pass
+			method = CONST_POST_METHOD
+			url = "%s%s" % (endpoint, CONST_SUFIX_METRIC_URL)
+			
+			datas = {CONST_NAME_ATTR : name, CONST_SUFFIX_ATTR: suffix, 
+				CONST_DESCRIPTION_ATTR: description, CONST_DEFAULT_VALUE_ATTR: default_value}
+			data = urllib.urlencode(datas)
+
+			headers = {CONST_HEADER_APP_KEY: token}
+
+			request = urllib2.Request(url, data=data, headers=headers)
+			request.get_method = lambda: method
+			response = urllib2.urlopen(request)
+			return response.read()
 		except Exception as e:
 		    logging.exception("Error while create metric.")
 		    return None			
 
-	# TODO implement
+	# TODO refactor
+	# TODO test with timestamp
+	# metric_ic : int
+	# value_point : double
+	# timestamp : string
 	@staticmethod
-	def create_metric_ponint(endpoint, token):
+	def create_metric_point(endpoint, metric_id, value_point, timestamp, token):
 		logger.debug("Creating metric point in %s." % (endpoint))
 		try:
-			pass
+			method = CONST_POST_METHOD
+			url = "%s%s/%s%s" % (endpoint, CONST_SUFIX_METRIC_URL, metric_id, CONST_SUFIX_METRIC_POINT_URL)
+
+			datas = {CONST_VALUE_ATTR : value_point}
+			if timestamp is not None:
+				datas.update({CONST_TIMESTAMP_ATTR: timestamp})
+			data = urllib.urlencode(datas)
+
+			headers = {CONST_HEADER_APP_KEY: token}
+
+			request = urllib2.Request(url, data=data, headers=headers)
+			request.get_method = lambda: method
+			response = urllib2.urlopen(request)
+			return response.read()
 		except Exception as e:
 		    logging.exception("Error while create metric point.")
 		    return None			
