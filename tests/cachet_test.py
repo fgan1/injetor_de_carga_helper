@@ -17,8 +17,6 @@ CONST_STATUS_CODE_200=200
 class CachetTest(unittest.TestCase):
 
 	def setUp(self):
-		# self.endpoint = "http://10.30.0.1591"
-		# self.token = "wg0UlbLXqmFv4JlPijP21"
 		self.__cachet = Cachet()
 
 	
@@ -40,7 +38,7 @@ class CachetTest(unittest.TestCase):
 		self.assertEqual(CONST_CACHET_COMPONENTS_RESPONSE_COMPONENT_NAME, component.get_name())
 
 	def test_(self):
-		
+
 
 # Utils 
 
