@@ -17,6 +17,7 @@ CONST_POST_METHOD="POST"
 CONST_NAME_ATTR="name"
 CONST_MESSAGE_ATTR="message"
 CONST_STATUS_ATTR="status"
+CONST_GROUP_ID_ATTR="group_id"
 CONST_VISIBLE_ATTR="visible"
 CONST_COMPONENT_ID_ATTR="component_id"
 CONST_COMPONENT_STATUS_ATTR="component_status"
@@ -25,6 +26,8 @@ CONST_DESCRIPTION_ATTR="description"
 CONST_DEFAULT_VALUE_ATTR="default_value"
 CONST_VALUE_ATTR="value"
 CONST_TIMESTAMP_ATTR="timestamp"
+
+CONST_OPERATIONAL_STATUS=1
 
 logger = logging.getLogger(__name__)
 
@@ -132,14 +135,20 @@ class CachetApiV1:
 		    logging.exception("Error while delete component(%s)." % (id))
 		    return None			
 
+	# TODO implement more tests
 	@staticmethod
-	def create_component(endpoint, name, token):
+	def create_component(endpoint, name, status, group_id, token):
 		logger.debug("Creating component in %s." % (endpoint))
 		try:
 			method = CONST_POST_METHOD
 			url = "%s%s" % (endpoint, CONST_SUFIX_COMPONENTS_URL)
-			
-			data = urllib.urlencode({CONST_NAME_ATTR : name})
+
+			datas = {CONST_NAME_ATTR : name, CONST_STATUS_ATTR: status}
+			if status is None:
+				datas.update({CONST_STATUS_ATTR: CONST_OPERATIONAL_STATUS})
+			if group_id is not None:
+				datas.update({CONST_GROUP_ID_ATTR: group_id})	
+			data = urllib.urlencode(datas)
 
 			headers = {CONST_HEADER_APP_KEY: token}
 

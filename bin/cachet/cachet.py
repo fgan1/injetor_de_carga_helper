@@ -3,6 +3,7 @@ import sys
 import os.path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import json
+import logging
 
 from bin.cachet.cachet_api_v1 import CachetApiV1
 
@@ -12,6 +13,8 @@ CONST_ID_JSON_ATTR="id"
 
 CONST_ERROR_MESSAGE_CACHET_API_V1="CachetApiV1 Error."
 
+logger = logging.getLogger(__name__)
+
 class Cachet:
 
 	def __init__(self):
@@ -20,17 +23,17 @@ class Cachet:
 
 	# FIXME attributes name
 	def get_components(self, endpoint):
-		jsonStr = CachetApiV1.get_components(endpoint)
-		if jsonStr == None:
+		json_str = CachetApiV1.get_components(endpoint)
+		if json_str == None:
 			raise Exception(CONST_ERROR_MESSAGE_CACHET_API_V1)
 
-		jsonObject = json.loads(jsonStr)
-		componentsJsonArray = jsonObject[CONST_DATA_JSON_ATTR]
+		json_object = json.loads(json_str)
+		components_json_array = json_object[CONST_DATA_JSON_ATTR]
 		components = []
-		for componentJson in componentsJsonArray:
-		    name = componentJson[CONST_NAME_JSON_ATTR]
-		    id = componentJson[CONST_ID_JSON_ATTR]
-		    components.append(Component(id, name))
+		for component_json in components_json_array:
+		    name = component_json[CONST_NAME_JSON_ATTR]
+		    id = component_json[CONST_ID_JSON_ATTR]
+		    components.append(Component(id=id, name=name))
 		return components
 
 	def get_component_by_name(self, endpoint, name):
@@ -42,9 +45,16 @@ class Cachet:
 				return component
 		return None
 
-	# TODO implement
-	def create_component(self, endpoint):
-		pass
+	def create_component(self, endpoint, component, token):
+		json_str = CachetApiV1.create_component(endpoint, component.get_name(), component.get_status(), component.get_group_id(), token)
+		if json_str == None:
+			raise Exception(CONST_ERROR_MESSAGE_CACHET_API_V1)
+
+		json_object = json.loads(json_str)
+		component_json = json_object[CONST_DATA_JSON_ATTR]
+		id = component_json[CONST_ID_JSON_ATTR]
+		name = component_json[CONST_NAME_JSON_ATTR]
+		return Component(id=id, name=name)
 
 	def get_groups_component(self, endpoint):
 		json_str = CachetApiV1.get_groups_component(endpoint)
@@ -69,9 +79,16 @@ class Cachet:
 				return group_component
 		return None
 
-	# TODO implement
-	def create_group_component(self, endpoint):
-		pass
+	def create_group_component(self, endpoint, group_component, token):
+		json_str = CachetApiV1.create_group_component(endpoint, group_component.get_name(), token)
+		if json_str == None:
+			raise Exception(CONST_ERROR_MESSAGE_CACHET_API_V1)
+		
+		json_object = json.loads(json_str)
+		group_component_json = json_object[CONST_DATA_JSON_ATTR]
+		id = group_component_json[CONST_ID_JSON_ATTR]
+		name = group_component_json[CONST_NAME_JSON_ATTR]
+		return Component(id=id, name=name)
 
 	def create_incident(self, endpoint, incident, token):
 		json_str = CachetApiV1.create_intent(endpoint, incident.get_name(), incident.get_message(), incident.get_status(), incident.get_visible(), incident.get_component_id(), incident.get_component_status(), token)
@@ -122,9 +139,11 @@ class Cachet:
 # TODO or FIXME move to other document ?
 class Component:
 
-	def __init__(self, id, name):
+	def __init__(self, id=None, name=None, status=None, group_id=None):
 		self.__id = id
 		self.__name = name
+		self.__status = status
+		self.__group_id = group_id
 		pass
 
 	def get_id(self):
@@ -132,6 +151,12 @@ class Component:
 
 	def get_name(self):
 		return self.__name
+
+	def get_status(self):
+		return self.__status		
+
+	def get_group_id(self):
+		return self.__group_id	
 
 	def __str__(self):
 		return "id : %s, name : %s" % (self.__id, self.__name)
@@ -141,7 +166,7 @@ class Component:
 
 class GroupComponent:
 
-	def __init__(self, id, name):
+	def __init__(self, id=None, name=None):
 		self.__id = id
 		self.__name = name
 		pass

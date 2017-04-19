@@ -7,10 +7,7 @@ import urllib2
 import time
 from mock import patch, Mock, MagicMock
 
-from bin.cachet.cachet import Cachet
-from bin.cachet.cachet import Incident
-from bin.cachet.cachet import Metric
-from bin.cachet.cachet import MetricPoint
+from bin.cachet.cachet import Cachet, Incident, Metric, MetricPoint, Component, GroupComponent
 from bin.cachet.cachet_api_v1 import CachetApiV1
 
 CONST_CACHET_COMPONENTS_RESPONSE="components_response.json"
@@ -33,6 +30,12 @@ CONST_CACHET_CREATE_METRIC_POINT_RESPONSE_M_P_ID=1
 CONST_CACHET_CREATE_METRICS_RESPONSE="get_metrics.json"
 CONST_CACHET_CREATE_METRICS_RESPONSE_SIZE=2
 
+CONST_CACHET_CREATE_GROUP_COMPONENT_RESPONSE="create_group_component.json"
+CONST_CACHET_CREATE_GROUP_COMPONENT_RESPONSE_GC_ID=5
+
+CONST_CACHET_CREATE_COMPONENT_RESPONSE="create_component.json"
+CONST_CACHET_CREATE_COMPONENT_RESPONSE_COMPONENT_ID=16
+
 CONST_STATUS_CODE_200=200
 
 CONST_PATH_RESOURCES="resources"
@@ -40,10 +43,8 @@ CONST_PATH_RESOURCES="resources"
 class CachetTest(unittest.TestCase):
 
 	def setUp(self):
-
 		self.__cachet = Cachet()
 
-	@unittest.skip("testing skipping")	
 	@patch('bin.cachet.cachet_api_v1.urllib2.urlopen')
 	def test_get_components(self, mock_urlopen):
 		response = get_response_cachet_api_v1(CONST_CACHET_COMPONENTS_RESPONSE)
@@ -52,7 +53,6 @@ class CachetTest(unittest.TestCase):
 		components = self.__cachet.get_components("")
 		self.assertEqual(CONST_CACHET_COMPONENTS_RESPONSE_COMPONENTS_SIZE, len(components))
 
-	@unittest.skip("testing skipping")
 	@patch('bin.cachet.cachet_api_v1.urllib2.urlopen')
 	def test_get_component_by_name(self, mock_urlopen):
 		response = get_response_cachet_api_v1(CONST_CACHET_COMPONENTS_RESPONSE)
@@ -61,7 +61,6 @@ class CachetTest(unittest.TestCase):
 		component = self.__cachet.get_component_by_name("", CONST_CACHET_COMPONENTS_RESPONSE_COMPONENT_NAME)
 		self.assertEqual(CONST_CACHET_COMPONENTS_RESPONSE_COMPONENT_NAME, component.get_name())
 
-	@unittest.skip("testing skipping")
 	@patch('bin.cachet.cachet_api_v1.urllib2.urlopen')
 	def test_get_group_componets(self, mock_urlopen):
 		response = get_response_cachet_api_v1(CONST_CACHET_GROUPS_COMPONENT_RESPONSE)
@@ -70,7 +69,6 @@ class CachetTest(unittest.TestCase):
 		group_components = self.__cachet.get_groups_component("")
 		self.assertEqual(CONST_CACHET_GROUPS_COMPONENT_RESPONSE_GROUPS_COMPONENTS_SIZE, len(group_components))
 
-	@unittest.skip("testing skipping")
 	@patch('bin.cachet.cachet_api_v1.urllib2.urlopen')
 	def test_get_group_component_by_name(self, mock_urlopen):
 		response = get_response_cachet_api_v1(CONST_CACHET_GROUPS_COMPONENT_RESPONSE)
@@ -79,7 +77,6 @@ class CachetTest(unittest.TestCase):
 		group_component = self.__cachet.get_group_component_by_name("", CONST_CACHET_GROUPS_COMPONENT_RESPONSE_GROUP_COMPONENT_NAME)
 		self.assertEqual(CONST_CACHET_GROUPS_COMPONENT_RESPONSE_GROUP_COMPONENT_NAME, group_component.get_name())
 
-	@unittest.skip("testing skipping")
 	@patch('bin.cachet.cachet_api_v1.urllib2.urlopen')
 	def test_create_incident(self, mock_urlopen):
 		response = get_response_cachet_api_v1(CONST_CACHET_CREATE_INCIDENT_RESPONSE)
@@ -89,7 +86,6 @@ class CachetTest(unittest.TestCase):
 		incident = self.__cachet.create_incident("", incident, "")
 		self.assertEqual(CONST_CACHET_CREATE_INCIDENT_RESPONSE_INCIDENT_ID, incident.get_id())
 		
-	@unittest.skip("testing skipping")
 	@patch('bin.cachet.cachet_api_v1.urllib2.urlopen')
 	def test_create_metric(self, mock_urlopen):
 		response = get_response_cachet_api_v1(CONST_CACHET_CREATE_METRIC_RESPONSE)
@@ -107,7 +103,6 @@ class CachetTest(unittest.TestCase):
 		metrics = self.__cachet.get_metrics(self.endpoint)
 		self.assertEqual(CONST_CACHET_CREATE_METRICS_RESPONSE_SIZE, len(metrics))
 
-	@unittest.skip("testing skipping")
 	@patch('bin.cachet.cachet_api_v1.urllib2.urlopen')
 	def test_create_metric_point(self, mock_urlopen):
 		response = get_response_cachet_api_v1(CONST_CACHET_CREATE_METRIC_POINT_RESPONSE)
@@ -117,7 +112,25 @@ class CachetTest(unittest.TestCase):
 		metric_point = self.__cachet.create_metric_point("", metric_point, "") 
 		self.assertEqual(CONST_CACHET_CREATE_METRIC_POINT_RESPONSE_M_P_ID, metric_point.get_id())
 
-# Utils 
+	@patch('bin.cachet.cachet_api_v1.urllib2.urlopen')
+	def test_create_group_component(self, mock_urlopen):
+		response = get_response_cachet_api_v1(CONST_CACHET_CREATE_GROUP_COMPONENT_RESPONSE)
+		defineMockResponse(mock_urlopen, response , CONST_STATUS_CODE_200)
+
+		group_component = GroupComponent()
+		group_component = self.__cachet.create_group_component("", group_component, "")
+		self.assertEqual(CONST_CACHET_CREATE_GROUP_COMPONENT_RESPONSE_GC_ID, group_component.get_id())
+
+	@patch('bin.cachet.cachet_api_v1.urllib2.urlopen')
+	def test_create_component(self, mock_urlopen):		
+		response = get_response_cachet_api_v1(CONST_CACHET_CREATE_COMPONENT_RESPONSE)
+		defineMockResponse(mock_urlopen, response , CONST_STATUS_CODE_200)
+
+		component = Component()
+		component = self.__cachet.create_component("", component, "")
+		self.assertEqual(CONST_CACHET_CREATE_COMPONENT_RESPONSE_COMPONENT_ID, component.get_id())		
+
+# Utils
 
 def get_response_cachet_api_v1(name_file):
 	relative_path = '%s/%s' % (CONST_PATH_RESOURCES, name_file)
